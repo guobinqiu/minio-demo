@@ -43,7 +43,7 @@ docker compose up -d
 http://localhost:9001
 ```
 
-## 命令行模式
+## 命令行操作
 
 ```
 # 设置一个服务别名（连接信息）

@@ -110,7 +110,7 @@ mc admin policy attach local-admin consoleAdmin --user guobin
 # 查看用户列表 (不会列出root用户)
 mc admin user list local-admin
 
-# 让guobin用户创建其他用户
+# 让 guobin 用户创建其他用户
 mc alias set local-guobin http://localhost:9000 guobin guobin123
 mc admin user add local-guobin binguo binguo123
 

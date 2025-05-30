@@ -35,15 +35,6 @@ volumes:
 
 > https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
-export AWS_SHARED_CREDENTIALS_FILE=.aws/credentials
-export AWS_CONFIG_FILE=.aws/config
-aws configure --profile minio-admin
-aws s3 ls --profile minio-admin --endpoint-url http://localhost:9000
-or
-export AWS_ACCESS_KEY_ID=minioadmin
-export AWS_SECRET_ACCESS_KEY=minioadmin
-aws s3 ls --endpoint-url http://localhost:9000
-
 ## 命令行操作
 
 | 操作说明                                                                                                                                      | mc 命令                                                                                                                                                                                      | AWS CLI 命令                                                                                                                                                                                                                                                                                                                                                     |

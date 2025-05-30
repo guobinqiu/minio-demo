@@ -135,7 +135,7 @@ func main() {
 	}
 
 	// 上传文件
-	if err := client.UploadFile("my-bucket", "girl.png", "../../girl.png"); err != nil {
+	if err := client.UploadFile("my-bucket", "girl.png", "girl.png"); err != nil {
 		log.Fatalf("UploadFile error: %v", err)
 	}
 

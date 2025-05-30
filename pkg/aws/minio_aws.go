@@ -157,7 +157,7 @@ func main() {
 	}
 
 	// 上传文件
-	err = client.UploadFile("my-bucket", "girl.png", "../../girl.png")
+	err = client.UploadFile("my-bucket", "girl.png", "girl.png")
 	if err != nil {
 		log.Fatal(err)
 	}

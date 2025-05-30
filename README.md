@@ -64,3 +64,9 @@ volumes:
 | 删除binguo用户                                                                         | mc admin user remove local-guobin binguo <br> or <br> mc admin user remove local-admin binguo                                                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
 | 查看用户权限                                                                           | mc admin user info local-admin guobin                                                                                                                                                        | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
 | 查看内置策略文件                                                                       | mc admin policy info local-admin readwrite <br> mc admin policy info local-admin consoleAdmin <br> mc admin policy info local-admin readonly <br> mc admin policy info local-admin writeonly | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+## SDK 操作
+
+```
+go test ./pkg/aws -v
+go test ./pkg/mc -v
+```

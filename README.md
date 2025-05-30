@@ -66,16 +66,16 @@ volumes:
 | 查看内置策略文件                                                                       | mc admin policy info local-admin readwrite <br> mc admin policy info local-admin consoleAdmin <br> mc admin policy info local-admin readonly <br> mc admin policy info local-admin writeonly | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
 ## SDK 操作
 
-aws
-
-```
-go test ./pkg/aws -v
-go run ./pkg/aws/minio_aws.go
-```
-
 mc
 
 ```
 go test ./pkg/mc -v
 go run ./pkg/mc/minio_mc.go
+```
+
+aws
+
+```
+go test ./pkg/aws -v
+go run ./pkg/aws/minio_aws.go
 ```

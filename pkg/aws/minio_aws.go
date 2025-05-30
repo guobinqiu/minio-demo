@@ -147,18 +147,22 @@ func (m *MinioClient) GeneratePresignedURL(bucketName, objectKey string, expiry 
 }
 
 func main() {
+	// 创建 MinIO 客户端
 	client := NewMinioClient("http://localhost:9000", "minioadmin", "minioadmin")
 
+	// 创建 bucket
 	err := client.CreateBucket("my-bucket")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = client.UploadFile("my-bucket", "girl.png", "girl.png")
+	// 上传文件
+	err = client.UploadFile("my-bucket", "girl.png", "../../girl.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// 列出 bucket 中的对象
 	objects, err := client.ListObjects("my-bucket", false)
 	if err != nil {
 		log.Fatal(err)
@@ -166,4 +170,11 @@ func main() {
 	for _, obj := range objects {
 		fmt.Println(*obj.Key)
 	}
+
+	// 生成预签名 URL
+	url, err := client.GeneratePresignedURL("my-bucket", "girl.png", 3600)
+	if err != nil {
+		log.Fatalf("GeneratePresignedURL error: %v", err)
+	}
+	fmt.Printf("Presigned URL: %s\n", url)
 }

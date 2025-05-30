@@ -96,14 +96,15 @@ func (mc *MinioClient) ListBuckets() error {
 
 // ListObjects 列出存储桶中的对象
 // 功能等价于: mc ls <bucket> [--recursive]
-func (mc *MinioClient) ListObjects(bucket string, recursive bool) error {
+func (mc *MinioClient) ListObjects(bucket string, recursive bool) ([]minio.ObjectInfo, error) {
+	var objects []minio.ObjectInfo
 	for object := range mc.Client.ListObjects(mc.Ctx, bucket, minio.ListObjectsOptions{Recursive: recursive}) {
 		if object.Err != nil {
-			return object.Err
+			return nil, object.Err
 		}
-		fmt.Println(object.Key)
+		objects = append(objects, object)
 	}
-	return nil
+	return objects, nil
 }
 
 // DeleteObject 删除指定对象
@@ -122,4 +123,35 @@ func (mc *MinioClient) GeneratePresignedURL(bucket, object string, expirySec int
 		return "", err
 	}
 	return presignedURL.String(), nil
+}
+
+func main() {
+	// 创建 MinIO 客户端
+	client := NewMinioClient("localhost:9000", "minioadmin", "minioadmin")
+
+	// 创建 bucket
+	if err := client.CreateBucket("my-bucket"); err != nil {
+		log.Fatalf("CreateBucket error: %v", err)
+	}
+
+	// 上传文件
+	if err := client.UploadFile("my-bucket", "girl.png", "../../girl.png"); err != nil {
+		log.Fatalf("UploadFile error: %v", err)
+	}
+
+	// 列出 bucket 中的对象
+	objects, err := client.ListObjects("my-bucket", false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, obj := range objects {
+		fmt.Println(obj.Key)
+	}
+
+	// 生成预签名 URL
+	url, err := client.GeneratePresignedURL("my-bucket", "girl.png", 3600)
+	if err != nil {
+		log.Fatalf("GeneratePresignedURL error: %v", err)
+	}
+	fmt.Printf("Presigned URL: %s\n", url)
 }

@@ -1,6 +1,6 @@
 # MinIO Demo
 
-## 二进制安装
+## 二进制安装 (MinIO Server + MinIO Client)
 
 | os      | url                                          |
 | ------- | -------------------------------------------- |
@@ -8,7 +8,7 @@
 | macos   | https://min.io/docs/minio/macos/index.html   |
 | windows | https://min.io/docs/minio/windows/index.html |
 
-## docker 安装
+## docker 安装 MinIO Server
 
 docker-compose.yaml
 
@@ -31,106 +31,45 @@ volumes:
   minio_data:
 ```
 
-运行
+## 安装 AWS CLI
 
-```
-docker compose up -d
-```
+> https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
-## 登录控制台
-
-```
-http://localhost:9001
-```
+export AWS_SHARED_CREDENTIALS_FILE=.aws/credentials
+export AWS_CONFIG_FILE=.aws/config
+aws configure --profile minio-admin
+aws s3 ls --profile minio-admin --endpoint-url http://localhost:9000
+or
+export AWS_ACCESS_KEY_ID=minioadmin
+export AWS_SECRET_ACCESS_KEY=minioadmin
+aws s3 ls --endpoint-url http://localhost:9000
 
 ## 命令行操作
 
-```
-# 设置一个服务别名（连接信息）
-mc alias set local-admin http://127.0.0.1:9000 minioadmin minioadmin
-
-# 删除一个别名
-mc alias remove local
-
-# 查看所有别名
-mc alias list
-
-# 创建一个桶，桶名称必须符合 S3 规范：小写字母、数字和连字符组成，不能大写。 mb = make bucket
-# 一个用户创建桶后，默认只有该用户有访问权限
-mc mb local-admin/my-bucket
-
-# 删除一个桶
-mc rm --recursive --force local-admin/my-bucket
-
-# 列出别名为 local 的 MinIO 实例里的所有桶
-mc ls local-admin
-
-# 上传文件到某个桶
-mc cp girl.png local-admin/my-bucket
-
-# 列出某个桶的所有文件 (根目录下所有)
-mc ls local-admin/my-bucket
-
-# 列出某个桶的所有文件 (包含子目录)
-mc ls --recursive local-admin/my-bucket
-mc ls -r local-admin/my-bucket
-
-# 重命名文件 (复制 + 删除)
-mc cp local-admin/my-bucket/girl.png local-admin/my-bucket/beauty.png
-mc rm local-admin/my-bucket/girl.png
-
-# 下载桶中某个文件到当前目录
-mc cp local-admin/my-bucket/beauty.png .
-
-# 查看桶策略（权限）
-mc anonymous get local-admin/my-bucket
-
-# 设置桶策略 - 允许匿名下载（可读）
-mc anonymous set download lolocal-admincal/my-bucket
-
-# 设置桶策略 - 允许匿名上传（可写）
-mc anonymous set upload local-admin/my-bucket
-
-# 设置桶策略 - 允许匿名读写（下载+上传）
-mc anonymous set public local-admin/my-bucket
-
-# 设置桶策略 - 禁止匿名访问（默认）
-mc anonymous set private local-admin/my-bucket
-
-# 针对 private 桶的某个文件生成临时下载链接，临时公开（预签名 URL）
-mc share download --expire=60m local-admin/my-bucket/beauty.png
-
-# 用管理员账号 minioadmin 连接 MinIO，并添加了一个新用户
-mc admin user add local-admin guobin guobin123
-
-# 给 guobin 分配 consoleAdmin 权限 (这是 MinIO 内置的管理员策略，赋予用户所有管理员权限)
-mc admin policy detach local-admin readwrite --user guobin
-mc admin policy attach local-admin consoleAdmin --user guobin
-
-# 查看用户列表 (不会列出root用户)
-mc admin user list local-admin
-
-# 让 guobin 用户创建其他用户
-mc alias set local-guobin http://localhost:9000 guobin guobin123
-mc admin user add local-guobin binguo binguo123
-
-# 给 binguo 分配 readwrite 权限 (不能执行管理操作，比如用户管理、策略管理、系统配置等)
-mc admin policy attach local-guobin readwrite --user binguo # guobin 用户可以给 binguo 分配权限
-or
-mc admin policy attach local-admin readwrite --user binguo # root 用户也可以给 binguo 分配权限
-
-# 删除用户
-mc admin user remove local-guobin binguo # guobin 用户可以删除 bingguo
-or
-mc admin user remove local-admin binguo  # root 用户也可以删除 binguo
-
-# 查看用户权限
-mc admin user info local-admin binguo
-mc admin user info local-admin guobin
-
-# 查看内置策略文件
-mc admin policy info local-admin readwrite
-mc admin policy info local-admin consoleAdmin
-mc admin policy info local-admin readonly
-mc admin policy info local-admin writeonly
-```
+| 操作说明                                                                                                                                      | mc 命令                                                                                                                                                                                      | AWS CLI 命令                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| # 设置一个连接                                                                                                                                | mc alias set local-admin http://127.0.0.1:9000 minioadmin minioadmin                                                                                                                         | export AWS_SHARED_CREDENTIALS_FILE=.aws/credentials <br> export AWS_CONFIG_FILE=.aws/config <br> aws configure --profile minio-admin <br> aws s3 ls --profile minio-admin --endpoint-url http://localhost:9000 <br> or <br> export AWS_ACCESS_KEY_ID=minioadmin <br> export AWS_SECRET_ACCESS_KEY=minioadmin <br> aws s3 ls --endpoint-url http://localhost:9000 |
+| # 删除一个别名                                                                                                                                | mc alias remove local                                                                                                                                                                        | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 查看所有别名                                                                                                                                | mc alias list                                                                                                                                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 创建一个桶，桶名称必须符合 S3 规范：小写字母、数字和连字符组成，不能大写。 mb = make bucket <br> 一个用户创建桶后，默认只有该用户有访问权限 | mc mb local-admin/my-bucket                                                                                                                                                                  | aws s3api create-bucket --bucket my-bucket --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                            |
+| # 删除一个桶                                                                                                                                  | mc rm --recursive --force local-admin/my-bucket                                                                                                                                              | aws s3 rb s3://my-bucket --force --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                      |
+| # 列出别名为 local 的 MinIO 实例里的所有桶                                                                                                    | mc ls local-admin                                                                                                                                                                            | aws s3 ls --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                                             |
+| # 上传文件到某个桶                                                                                                                            | mc cp girl.png local-admin/my-bucket                                                                                                                                                         | aws s3 cp girl.png s3://my-bucket --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                     |
+| # 列出某个桶的所有文件 (根目录下所有)                                                                                                         | mc ls local-admin/my-bucket                                                                                                                                                                  | aws s3 ls s3://my-bucket --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                              |
+| # 列出某个桶的所有文件 (包含子目录)                                                                                                           | mc ls --recursive local-admin/my-bucket <br> mc ls -r local-admin/my-bucket                                                                                                                  | aws s3 ls s3://my-bucket --recursive --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                  |
+| # 重命名文件 (复制 + 删除)                                                                                                                    | mc cp local-admin/my-bucket/girl.png local-admin/my-bucket/beauty.png <br> mc rm local-admin/my-bucket/girl.png                                                                              | aws s3 cp s3://my-bucket/girl.png s3://my-bucket/beauty.png --endpoint-url http://127.0.0.1:9000 --profile minio-admin <br> aws s3 rm s3://my-bucket/girl.png --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                         |
+| # 下载桶中某个文件到当前目录                                                                                                                  | mc cp local-admin/my-bucket/beauty.png .                                                                                                                                                     | aws s3 cp s3://my-bucket/beauty.png . --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                                                 |
+| # 查看桶策略（权限）                                                                                                                          | mc anonymous get local-admin/my-bucket                                                                                                                                                       | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 设置桶策略 - 允许匿名下载（可读）                                                                                                           | mc anonymous set download local-admin/my-bucket                                                                                                                                              | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 设置桶策略 - 允许匿名上传（可写）                                                                                                           | mc anonymous set upload local-admin/my-bucket                                                                                                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 设置桶策略 - 允许匿名读写（下载+上传）                                                                                                      | mc anonymous set public local-admin/my-bucket                                                                                                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 设置桶策略 - 禁止匿名访问（默认）                                                                                                           | mc anonymous set private local-admin/my-bucket                                                                                                                                               | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 针对 private 桶的某个文件生成临时下载链接（预签名 URL）如供浏览器访问                                                                       | mc share download --expire=60m local-admin/my-bucket/beauty.png                                                                                                                              | aws s3 presign s3://my-bucket/beauty.png --expires-in 3600 --endpoint-url http://127.0.0.1:9000 --profile minio-admin                                                                                                                                                                                                                                            |
+| # 用管理员账号 minioadmin 连接 MinIO，并添加了一个新用户                                                                                      | mc admin user add local-admin guobin guobin123                                                                                                                                               | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 给 guobin 分配 consoleAdmin 权限 (这是 MinIO 内置的管理员策略，赋予用户所有管理员权限)                                                      | mc admin policy detach local-admin readwrite --user guobin <br> mc admin policy attach local-admin consoleAdmin --user guobin                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 查看用户列表 (不会列出root用户)                                                                                                             | mc admin user list local-admin                                                                                                                                                               | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 让 guobin 用户创建其他用户                                                                                                                  | mc alias set local-guobin http://localhost:9000 guobin guobin123 <br> mc admin user add local-guobin binguo binguo123                                                                        | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 给 binguo 分配 readwrite 权限 (不能执行管理操作，比如用户管理、策略管理、系统配置等)                                                        | mc admin policy attach local-guobin readwrite --user binguo <br> or <br> mc admin policy attach local-admin readwrite --user binguo                                                          | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 删除用户                                                                                                                                    | mc admin user remove local-guobin binguo <br> or <br> mc admin user remove local-admin binguo                                                                                                | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 查看用户权限                                                                                                                                | mc admin user info local-admin binguo <br> mc admin user info local-admin guobin                                                                                                             | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |
+| # 查看内置策略文件                                                                                                                            | mc admin policy info local-admin readwrite <br> mc admin policy info local-admin consoleAdmin <br> mc admin policy info local-admin readonly <br> mc admin policy info local-admin writeonly | 无对应命令                                                                                                                                                                                                                                                                                                                                                       |

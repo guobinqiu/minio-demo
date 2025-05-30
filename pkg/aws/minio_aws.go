@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -15,6 +16,7 @@ import (
 
 type MinioClient struct {
 	s3Client *s3.S3
+	session  *session.Session
 }
 
 func NewMinioClient(endpoint, accessKey, secretKey string) *MinioClient {
@@ -28,6 +30,7 @@ func NewMinioClient(endpoint, accessKey, secretKey string) *MinioClient {
 
 	return &MinioClient{
 		s3Client: s3.New(sess),
+		session:  sess,
 	}
 }
 
@@ -36,6 +39,13 @@ func (m *MinioClient) CreateBucket(bucketName string) error {
 	_, err := m.s3Client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 	})
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			if aerr.Code() == s3.ErrCodeBucketAlreadyOwnedByYou {
+				return nil
+			}
+		}
+	}
 	return err
 }
 
@@ -64,7 +74,7 @@ func (m *MinioClient) UploadFile(bucketName, objectKey, filePath string) error {
 	}
 	defer file.Close()
 
-	uploader := s3manager.NewUploaderWithClient(m.s3Client)
+	uploader := s3manager.NewUploader(m.session)
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -81,7 +91,7 @@ func (m *MinioClient) DownloadFile(bucketName, objectKey, filePath string) error
 	}
 	defer file.Close()
 
-	downloader := s3manager.NewDownloaderWithClient(m.s3Client)
+	downloader := s3manager.NewDownloader(m.session)
 	_, err = downloader.Download(file, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -94,9 +104,8 @@ func (m *MinioClient) ListObjects(bucketName string, recursive bool) ([]*s3.Obje
 	input := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
 	}
-
-	if recursive {
-		input.Delimiter = aws.String("")
+	if !recursive {
+		input.Delimiter = aws.String("/")
 	}
 
 	result, err := m.s3Client.ListObjectsV2(input)
@@ -117,7 +126,6 @@ func (m *MinioClient) DeleteObject(bucketName, objectKey string) error {
 
 // RenameObject 重命名存储桶中的对象
 func (m *MinioClient) RenameObject(bucketName, oldKey, newKey string) error {
-	// 先复制对象
 	_, err := m.s3Client.CopyObject(&s3.CopyObjectInput{
 		Bucket:     aws.String(bucketName),
 		CopySource: aws.String(fmt.Sprintf("%s/%s", bucketName, oldKey)),
@@ -126,8 +134,6 @@ func (m *MinioClient) RenameObject(bucketName, oldKey, newKey string) error {
 	if err != nil {
 		return err
 	}
-
-	// 然后删除旧对象
 	return m.DeleteObject(bucketName, oldKey)
 }
 
@@ -137,27 +143,22 @@ func (m *MinioClient) GeneratePresignedURL(bucketName, objectKey string, expiry 
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 	})
-
 	return req.Presign(time.Duration(expiry) * time.Second)
 }
 
 func main() {
-	// 示例用法
 	client := NewMinioClient("http://localhost:9000", "minioadmin", "minioadmin")
 
-	// 创建存储桶
 	err := client.CreateBucket("my-bucket")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 上传文件
 	err = client.UploadFile("my-bucket", "girl.png", "girl.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 列出存储桶中的对象
 	objects, err := client.ListObjects("my-bucket", false)
 	if err != nil {
 		log.Fatal(err)
